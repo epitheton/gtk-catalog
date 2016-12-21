@@ -87,8 +87,6 @@ class Sqlite:
         self.thumbnails_from_deleted_files = []
         self.thumbnails_from_new_files = []
 
-
-
     def close(self):
         if self.is_temporal:
             self.commit()
@@ -99,7 +97,6 @@ class Sqlite:
             self.__delete_thumbnails_from_new_files()
             self.thumbnails_from_deleted_files = []
             self.thumbnails_from_new_files = []
-
 
     def sql(self, sql):
         return self.fetchall(self.__sql(sql));
@@ -183,8 +180,8 @@ class Sqlite:
         self.__sql("create table config (key varchar, value varchar);")
         self.__sql("insert into config values ('version', '" + value + "');")
 
-    """ sqlite3 no soporta triggers recursivos, de momento no son útiles """
     def __create_trigers(self):
+        """ sqlite3 no soporta triggers recursivos, de momento no son útiles """
 
         self.cursor.execute("CREATE TRIGGER trigger_delete_catalog DELETE ON catalogs " +
                             "BEGIN" +
@@ -199,9 +196,9 @@ class Sqlite:
 
         self.cursor.execute("CREATE TRIGGER trigger_delete_files DELETE ON files " +
                             "BEGIN" +
-                                " DELETE FROM metadata where id=old.id;" +
-                                " DELETE FROM rcategoriesfiles where idfile=old.id;" +
-                                " DELETE FROM files where idparent=old.id;" +
+                            " DELETE FROM metadata where id=old.id;" +
+                            " DELETE FROM rcategoriesfiles where idfile=old.id;" +
+                            " DELETE FROM files where idparent=old.id;" +
                             "END;")
 
         self.cursor.execute("CREATE TRIGGER trigger_delete_categorie DELETE ON categories "
@@ -234,7 +231,7 @@ class Sqlite:
         self.commit()
 
     def get_categories(self):
-        result = self.sql("select id, name from categories order by name")
+        result = self.sql("SELECT id, name FROM categories order by name")
         res = []
         for col in result:
             res.append([col["id"], col["name"]])
@@ -248,7 +245,6 @@ class Sqlite:
                 if col["idfile"] != None:
                     cats.append(col["id"])
             except: pass
-
         return cats
 
     def get_metadata_from_file(self, id):
@@ -265,21 +261,20 @@ class Sqlite:
 #        self.__sql("DELETE FROM thumbnails")
 #        self.commit()
 
-
     def insert_category(self, cat):
         self.__sql("insert into categories values (Null, '" + cat + "')")
         return self.cursor.lastrowid;
 
-    """ inserta un disco en la bd """
     def __insert_disk(self, disk):
+        """ inserta un disco en la bd """
 #        icon = disk.get_icon().get_pixels()
         disk.get_icon().save('/tmp/gnomecatalog_icon_disk.png', 'png')
         data = open('/tmp/gnomecatalog_icon_disk.png', 'rb').read()
         self.cursor.execute("INSERT into disks (id, name, volname, root, icon, comment, borrow) values (NULL, ?, ?, ?, ?, ?, ?)", (disk.name ,  disk.name, disk.path, buffer(data), disk.comment, disk.borrow));
         return self.cursor.lastrowid;
 
-    """ Inserta los ficheros recursivamente """
     def __insert_files(self, iddisk, idparent, file):
+        """ Inserta los ficheros recursivamente """
         idparent = self.__insert_file(iddisk, idparent, file)
 
         if file.is_dir():
@@ -328,24 +323,20 @@ class Sqlite:
         catalog.id = self.cursor.lastrowid;
         return catalog.id
 
-
-    """ Funciones usadas en la importacion """
     def add_catalog(self, name):
+        """ Funciones usadas en la importacion """
         self.__sql("INSERT INTO catalogs (id, name) values (NULL, '" + name + "')")
-        id =  self.cursor.lastrowid;
-        return id
+        return self.cursor.lastrowid;
 
     def add_disk(self, name, idcatalog = '', volname = '', path = ''):
-        self.cursor.execute("INSERT into disks (id, idcatalog, name, volname, root) values (NULL, ?, ?, ?, ?)", (idcatalog, name, self._check(volname), self._check(path)));
-        id =  self.cursor.lastrowid;
-        return id
+        self.cursor.execute("INSERT into disks (id, idcatalog, name, volname, root) values (NULL, ?, ?, ?, ?)",
+                            (idcatalog, name, self._check(volname), self._check(path)));
+        return self.cursor.lastrowid;
 
     def add_file(self, iddisk, idparent, name, size =  '', path = '', mime = '', mimetype = ''):
-        self.cursor.execute("INSERT into files (id, iddisk, idparent, name, size, path, mime, type) values (NULL, ?, ?, ?, ?, ?, ?, ?)", (iddisk, idparent, name, size, path, mime, mimetype));
-        id =  self.cursor.lastrowid;
-        return id
-
-
+        self.cursor.execute("INSERT into files (id, iddisk, idparent, name, size, path, mime, type) values (NULL, ?, ?, ?, ?, ?, ?, ?)",
+                            (iddisk, idparent, name, size, path, mime, mimetype));
+        return self.cursor.lastrowid;
 
     def read_data(self, idparent = None):
         data = []
