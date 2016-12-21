@@ -1,0 +1,6 @@
+
+build/
+*.swp
+*.pyc
+catalog.db_thumbs
+gnomeCatalog.db

@@ -67,6 +67,7 @@ def get_label(path):
         print("label:",drive.get_display_name())
         return drive.get_display_name()
 
+
 def callback_eject(data, data1, data2): pass
 
 
@@ -113,12 +114,10 @@ def mount(path, callback):
 
 if __name__ == "__main__":
 #    path = "/media/cdrom0"
-    print("A"*100)
     path = "/home/michal/Pictures/2014/"
     icon = get_drive_icon(path)
     if icon:
         icon.save('/home/jose/Escritorio/tmp_gnomecatalog_icon.png', 'png')
-
 
     drives = gnomevfs.VolumeMonitor().get_connected_drives()
     print("drives=%s" % drives)
